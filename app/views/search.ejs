@@ -1,0 +1,166 @@
+<%- include('partials/header', { pageTitle: title }) %>
+  <main class="container">
+    <div class="page-head">
+      <div>
+        <h1><%= title %></h1>
+        <p><%= subtitle %></p>
+      </div>
+    </div>
+
+    <%- include('partials/alerts') %>
+
+    <!-- ============================ BỘ LỌC ============================ -->
+    <section class="card filter-card">
+      <form method="get" action="<%= basePath %>" class="filter-bar">
+        <div class="field grow">
+          <label for="keyword">Từ khóa (tên / mô tả)</label>
+          <input id="keyword" name="keyword" type="text" maxlength="200"
+                 placeholder="VD: áo thun" value="<%= filters.keyword %>">
+        </div>
+
+        <% if (scope !== 'seller') { %>
+          <div class="field">
+            <label for="shopId">Cửa hàng</label>
+            <select id="shopId" name="shopId">
+              <option value="">Tất cả</option>
+              <% shops.forEach((shop) => { %>
+                <option value="<%= shop.ShopID %>"
+                        <%= Number(filters.shopId) === Number(shop.ShopID) ? 'selected' : '' %>>
+                  <%= shop.ShopName %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+        <% } %>
+
+        <div class="field">
+          <label for="categoryId">Danh mục</label>
+          <select id="categoryId" name="categoryId">
+            <option value="">Tất cả</option>
+            <% categories.forEach((c) => { %>
+              <option value="<%= c.CategoryID %>"
+                      <%= Number(filters.categoryId) === Number(c.CategoryID) ? 'selected' : '' %>>
+                <%= c.Path %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <% if (scope !== 'buyer') { %>
+          <div class="field">
+            <label for="status">Trạng thái</label>
+            <select id="status" name="status">
+              <option value="">Tất cả</option>
+              <% PRODUCT_STATUSES.forEach((s) => { %>
+                <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>>
+                  <%= productStatusLabel[s] %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+        <% } %>
+
+        <div class="filter-actions">
+          <button type="submit" class="btn primary">Tìm</button>
+          <a class="btn ghost" href="<%= basePath %>">Xóa lọc</a>
+        </div>
+      </form>
+    </section>
+
+    <!-- ============================ KẾT QUẢ ============================ -->
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Kết quả</h2>
+          <p class="card-sub"><%= rows.length %> sản phẩm</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Sản phẩm</th>
+              <% if (scope !== 'seller') { %><th>Cửa hàng</th><% } %>
+              <th>Danh mục</th>
+              <th>Ngày đăng</th>
+              <% if (scope !== 'buyer') { %><th>Trạng thái</th><% } %>
+              <th class="num">Giá bán</th>
+              <th class="num"><%= scope === 'buyer' ? 'Còn hàng' : 'Tồn kho' %></th>
+              <% if (scope !== 'buyer') { %><th class="actions-head"></th><% } %>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (rows.length === 0) { %>
+              <tr><td colspan="9" class="empty">Không có sản phẩm nào khớp bộ lọc.</td></tr>
+            <% } %>
+            <% rows.forEach((p) => { %>
+              <% const stock = Number(p.TotalStock); %>
+              <tr>
+                <td class="mono">#<%= p.ProductID %></td>
+                <td>
+                  <div class="product-name"><%= p.ProductName %></div>
+                  <div class="product-desc">
+                    <%= truncate(p.Description, 48) || '—' %>
+                    <span class="meta-sep">·</span>
+                    <span class="variant-note"><%= p.VariantCount %> phân loại</span>
+                  </div>
+                </td>
+                <% if (scope !== 'seller') { %>
+                  <td>
+                    <div><%= p.ShopName %></div>
+                    <% if (scope === 'admin' && p.ShopStatus !== 'ACTIVE') { %>
+                      <span class="badge shop-<%= p.ShopStatus %>">
+                        <%= shopStatusLabel[p.ShopStatus] || p.ShopStatus %>
+                      </span>
+                    <% } %>
+                  </td>
+                <% } %>
+                <td><%= p.CategoryName %></td>
+                <td class="mono"><%= formatDateTime(p.PostedDate) %></td>
+                <% if (scope !== 'buyer') { %>
+                  <td>
+                    <span class="badge status-<%= p.ProductStatus %>">
+                      <%= productStatusLabel[p.ProductStatus] || p.ProductStatus %>
+                    </span>
+                  </td>
+                <% } %>
+                <td class="num"><%= priceRange(p) %></td>
+                <td class="num">
+                  <% if (Number(p.VariantCount) === 0) { %>
+                    <span class="muted">—</span>
+                  <% } else if (scope === 'buyer') { %>
+                    <span class="<%= stock === 0 ? 'stock-out' : stock <= 5 ? 'stock-low' : '' %>">
+                      <%= stock === 0 ? 'Hết hàng' : formatNumber(stock) %>
+                    </span>
+                  <% } else { %>
+                    <span class="<%= stock === 0 ? 'stock-out' : stock <= 5 ? 'stock-low' : '' %>">
+                      <%= formatNumber(stock) %>
+                    </span>
+                  <% } %>
+                </td>
+                <% if (scope === 'seller') { %>
+                  <td class="actions">
+                    <% if (p.ProductStatus !== 'BANNED') { %>
+                      <a class="btn small ghost" href="/seller/products/<%= p.ProductID %>/edit">Sửa</a>
+                    <% } %>
+                  </td>
+                <% } else if (scope === 'admin') { %>
+                  <td class="actions">
+                    <% if (p.ProductStatus !== 'BANNED') { %>
+                      <form method="post" action="/admin/products/<%= p.ProductID %>/ban"
+                            data-confirm="Gỡ sản phẩm #<%= p.ProductID %> “<%= p.ProductName %>”? Trạng thái BANNED là vĩnh viễn, người bán sẽ không sửa được nữa.">
+                        <input type="hidden" name="back" value="<%= currentUrl %>">
+                        <button type="submit" class="btn small danger-ghost">Gỡ (BANNED)</button>
+                      </form>
+                    <% } %>
+                  </td>
+                <% } %>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+<%- include('partials/footer') %>

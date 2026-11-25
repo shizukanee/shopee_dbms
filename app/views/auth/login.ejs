@@ -1,0 +1,26 @@
+<%- include('../partials/header', { pageTitle: 'Đăng nhập' }) %>
+  <main class="container auth-wrap">
+    <section class="card auth-card">
+      <h1>Đăng nhập</h1>
+      <p class="card-sub">Hệ thống tự đưa bạn vào kênh tương ứng với vai trò của tài khoản.</p>
+
+      <%- include('../partials/alerts') %>
+
+      <form method="post" action="/login" class="auth-form" novalidate>
+        <input type="hidden" name="next" value="<%= next %>">
+        <div class="field">
+          <label for="login">Email hoặc số điện thoại</label>
+          <input id="login" name="login" type="text" autocomplete="username" required
+                 value="<%= login %>" <%= login ? '' : 'autofocus' %>>
+        </div>
+        <div class="field">
+          <label for="password">Mật khẩu</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required
+                 <%= login ? 'autofocus' : '' %>>
+        </div>
+        <button type="submit" class="btn primary block">Đăng nhập</button>
+      </form>
+
+      <p class="auth-switch">Chưa có tài khoản? <a class="link" href="/register">Đăng ký</a></p>
+    </section>
+<%- include('../partials/footer') %>

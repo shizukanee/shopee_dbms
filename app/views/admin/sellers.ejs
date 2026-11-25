@@ -1,0 +1,85 @@
+<%- include('../partials/header', { pageTitle: 'Duyệt người bán' }) %>
+  <main class="container">
+    <div class="page-head">
+      <div>
+        <h1>Duyệt người bán</h1>
+        <p>Chỉ người bán <strong>đã xác minh</strong> mới mở được cửa hàng
+           (trigger <code>trg_shop_bi</code> — TV1).</p>
+      </div>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Danh sách người bán</h2>
+          <p class="card-sub">
+            <%= sellers.length %> người bán ·
+            <%= sellers.filter((s) => s.VerificationStatus === 'PENDING').length %> đang chờ xác minh
+          </p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Người bán</th>
+              <th>Liên hệ</th>
+              <th>Mã số thuế</th>
+              <th>Ngày đăng ký</th>
+              <th>Xác minh</th>
+              <th>Cửa hàng</th>
+              <th class="actions-head"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (sellers.length === 0) { %>
+              <tr><td colspan="8" class="empty">Chưa có người bán nào.</td></tr>
+            <% } %>
+            <% sellers.forEach((s) => { %>
+              <tr>
+                <td class="mono">#<%= s.UserID %></td>
+                <td><div class="product-name">
+                  <%= [s.LastName, s.MiddleName, s.FirstName].filter(Boolean).join(' ') %></div></td>
+                <td><div><%= s.Email %></div><div class="product-desc"><%= s.Phone %></div></td>
+                <td class="mono"><%= s.TaxCode || '—' %></td>
+                <td class="mono"><%= formatDateTime(s.RegisterDate) %></td>
+                <td>
+                  <span class="badge verify-<%= s.VerificationStatus %>">
+                    <%= verificationLabel[s.VerificationStatus] %>
+                  </span>
+                  <% if (s.VerifiedDate) { %>
+                    <div class="product-desc"><%= formatDateTime(s.VerifiedDate) %></div>
+                  <% } %>
+                </td>
+                <td>
+                  <% if (s.ShopID) { %>
+                    <div><%= s.ShopName %></div>
+                    <span class="badge shop-<%= s.ShopStatus %>"><%= shopStatusLabel[s.ShopStatus] %></span>
+                  <% } else { %>
+                    <span class="muted">Chưa mở</span>
+                  <% } %>
+                </td>
+                <td class="actions always">
+                  <% if (s.VerificationStatus !== 'VERIFIED') { %>
+                    <form method="post" action="/admin/nguoi-ban/<%= s.UserID %>/duyet">
+                      <button type="submit" class="btn small primary">Xác minh</button>
+                    </form>
+                  <% } %>
+                  <% if (s.VerificationStatus === 'PENDING') { %>
+                    <form method="post" action="/admin/nguoi-ban/<%= s.UserID %>/tu-choi"
+                          data-confirm="Từ chối người bán #<%= s.UserID %>?">
+                      <button type="submit" class="btn small danger-ghost">Từ chối</button>
+                    </form>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+<%- include('../partials/footer') %>

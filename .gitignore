@@ -1,0 +1,15 @@
+# Phụ thuộc Node
+node_modules/
+
+# Cấu hình chứa mật khẩu — chỉ đưa file mẫu .env.example lên Git
+.env
+.env.*
+!.env.example
+
+# Log, file tạm, cấu hình máy cá nhân
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/

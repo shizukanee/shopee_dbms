@@ -1,0 +1,247 @@
+<%- include('partials/header', { pageTitle: 'Sản phẩm của tôi' }) %>
+  <main class="container">
+    <div class="page-head">
+      <div>
+        <h1>Sản phẩm của <%= shop.ShopName %></h1>
+        <p>
+          Thêm / sửa / xóa gọi trực tiếp các thủ tục <code>sp_product_them</code>,
+          <code>sp_product_sua</code>, <code>sp_product_xoa</code> (TV3 · câu 2.1).
+        </p>
+      </div>
+      <a class="btn ghost" href="/seller">↻ Làm mới</a>
+    </div>
+
+    <%- include('partials/alerts') %>
+
+    <% if (!shopUsable) { %>
+      <div class="notice danger">
+        Cửa hàng đang ở trạng thái <strong><%= shopStatusLabel[shop.ShopStatus] || shop.ShopStatus %></strong>.
+        Thủ tục CSDL chỉ cho thêm/sửa sản phẩm khi cửa hàng đang hoạt động hoặc bị cảnh báo.
+      </div>
+    <% } %>
+
+    <section class="stats" aria-label="Thống kê nhanh">
+      <article class="stat">
+        <span class="stat-label">Tổng sản phẩm</span>
+        <strong><%= stats.total %></strong>
+        <small>của cửa hàng</small>
+      </article>
+      <article class="stat">
+        <span class="stat-label">Đang bán</span>
+        <strong><%= stats.active %></strong>
+        <small>trạng thái ACTIVE</small>
+      </article>
+      <article class="stat">
+        <span class="stat-label">Sắp hết / hết hàng</span>
+        <strong><%= stats.lowStock %></strong>
+        <small>tồn kho ≤ 5</small>
+      </article>
+    </section>
+
+    <div class="layout">
+      <!-- ============================ FORM ============================ -->
+      <section class="card form-card">
+        <div class="card-head">
+          <div>
+            <h2>
+              <%= mode === 'edit' ? 'Sửa sản phẩm #' + form.ProductID : 'Thêm sản phẩm' %>
+            </h2>
+            <p class="card-sub">
+              <%= mode === 'edit'
+                    ? 'Cập nhật thông tin rồi bấm “Lưu thay đổi”.'
+                    : 'Điền thông tin và bấm “Thêm sản phẩm”.' %>
+            </p>
+          </div>
+          <% if (mode === 'edit') { %>
+            <a class="link" href="/seller">Hủy sửa</a>
+          <% } %>
+        </div>
+
+        <% const banned = current && current.ProductStatus === 'BANNED'; %>
+        <% if (banned) { %>
+          <div class="notice danger">
+            Sản phẩm này đã bị quản trị viên <strong>gỡ (BANNED)</strong>.
+            Thủ tục <code>sp_product_sua</code> không cho phép sửa nữa.
+          </div>
+        <% } %>
+
+        <form id="productForm" method="post" novalidate
+              action="<%= mode === 'edit' ? '/seller/products/' + form.ProductID : '/seller/products' %>">
+          <fieldset <% if (banned) { %>disabled<% } %>>
+            <div class="field">
+              <label>Cửa hàng</label>
+              <div class="readonly-field">
+                <%= shop.ShopName %> · <%= shopStatusLabel[shop.ShopStatus] || shop.ShopStatus %>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="CategoryID">Danh mục lá <span class="req">*</span></label>
+              <select id="CategoryID" name="CategoryID"
+                      class="<%= fieldErrors.CategoryID ? 'invalid' : '' %>">
+                <option value="">— Chọn danh mục —</option>
+                <% categories.forEach((category) => { %>
+                  <option value="<%= category.CategoryID %>"
+                          <%= Number(form.CategoryID) === Number(category.CategoryID) ? 'selected' : '' %>>
+                    <%= category.Path %>
+                  </option>
+                <% }) %>
+              </select>
+              <p class="field-error" data-error-for="CategoryID"><%= fieldErrors.CategoryID || '' %></p>
+            </div>
+
+            <div class="field">
+              <div class="label-row">
+                <label for="ProductName">Tên sản phẩm <span class="req">*</span></label>
+                <span class="counter" id="nameCounter">0/200</span>
+              </div>
+              <input id="ProductName" name="ProductName" type="text" maxlength="200"
+                     autocomplete="off" placeholder="VD: Áo thun nam cotton basic"
+                     value="<%= form.ProductName || '' %>"
+                     class="<%= fieldErrors.ProductName ? 'invalid' : '' %>">
+              <p class="field-error" data-error-for="ProductName"><%= fieldErrors.ProductName || '' %></p>
+            </div>
+
+            <div class="field">
+              <div class="label-row">
+                <label for="Description">Mô tả</label>
+                <span class="counter" id="descriptionCounter">0/5000</span>
+              </div>
+              <textarea id="Description" name="Description" rows="4" maxlength="5000"
+                        placeholder="Chất liệu, kích thước, xuất xứ…"
+                        class="<%= fieldErrors.Description ? 'invalid' : '' %>"><%= form.Description || '' %></textarea>
+              <p class="field-error" data-error-for="Description"><%= fieldErrors.Description || '' %></p>
+            </div>
+
+            <div class="field">
+              <label for="ProductStatus">Trạng thái</label>
+              <select id="ProductStatus" name="ProductStatus"
+                      class="<%= fieldErrors.ProductStatus ? 'invalid' : '' %>">
+                <% statuses.forEach((status) => { %>
+                  <option value="<%= status %>"
+                          <%= form.ProductStatus === status ? 'selected' : '' %>>
+                    <%= productStatusLabel[status] %> (<%= status %>)
+                  </option>
+                <% }) %>
+              </select>
+              <p class="field-error" data-error-for="ProductStatus"><%= fieldErrors.ProductStatus || '' %></p>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn primary">
+                <%= mode === 'edit' ? 'Lưu thay đổi' : 'Thêm sản phẩm' %>
+              </button>
+              <% if (mode === 'edit') { %>
+                <a class="btn ghost" href="/seller">Hủy</a>
+              <% } %>
+            </div>
+          </fieldset>
+        </form>
+
+        <div class="rules">
+          <strong>Quy tắc nghiệp vụ do CSDL kiểm tra</strong>
+          <ul>
+            <li>Cửa hàng phải đang hoạt động/cảnh báo; danh mục phải là danh mục lá.</li>
+            <li>Tên không trùng trong cùng cửa hàng, tối đa 200 ký tự.</li>
+            <li>Chỉ xóa khi sản phẩm chưa từng bán và không có trong giỏ hàng.</li>
+            <li>Sản phẩm bị quản trị viên gỡ (BANNED) không được sửa.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============================ DANH SÁCH ============================ -->
+      <section class="card list-card">
+        <div class="card-head">
+          <div>
+            <h2>Danh sách sản phẩm</h2>
+            <p class="card-sub"><%= products.length %> sản phẩm · bấm “Sửa” hoặc “Xóa” trên từng dòng</p>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Sản phẩm</th>
+                <th>Danh mục</th>
+                <th>Trạng thái</th>
+                <th class="num">Giá bán</th>
+                <th class="num">Tồn kho</th>
+                <th class="actions-head"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (products.length === 0) { %>
+                <tr>
+                  <td colspan="7" class="empty">
+                    Cửa hàng chưa có sản phẩm nào. Hãy dùng biểu mẫu bên trái để thêm sản phẩm đầu tiên.
+                  </td>
+                </tr>
+              <% } %>
+
+              <% products.forEach((product) => { %>
+                <% const stock = Number(product.TotalStock); %>
+                <% const noVariant = Number(product.VariantCount) === 0; %>
+                <tr>
+                  <td class="mono">#<%= product.ProductID %></td>
+                  <td>
+                    <div class="product-name"><%= product.ProductName %></div>
+                    <div class="product-desc">
+                      <%= truncate(product.Description, 48) || '—' %>
+                      <span class="meta-sep">·</span>
+                      <span class="variant-note"><%= product.VariantCount %> phân loại</span>
+                    </div>
+                  </td>
+                  <td><%= product.CategoryName %></td>
+                  <td>
+                    <span class="badge status-<%= product.ProductStatus %>">
+                      <%= productStatusLabel[product.ProductStatus] || product.ProductStatus %>
+                    </span>
+                  </td>
+                  <td class="num"><%= priceRange(product) %></td>
+                  <td class="num">
+                    <% if (noVariant) { %>
+                      <span class="muted">—</span>
+                    <% } else { %>
+                      <span class="<%= stock === 0 ? 'stock-out' : stock <= 5 ? 'stock-low' : '' %>">
+                        <%= formatNumber(stock) %>
+                      </span>
+                    <% } %>
+                  </td>
+                  <td class="actions">
+                    <% if (product.ProductStatus !== 'BANNED') { %>
+                      <a class="btn small ghost" href="/seller/products/<%= product.ProductID %>/edit">Sửa</a>
+                    <% } %>
+                    <button type="button" class="btn small danger-ghost"
+                            data-delete-id="<%= product.ProductID %>"
+                            data-delete-name="<%= product.ProductName %>">Xóa</button>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+  <!-- ============================ MODAL XÓA ============================ -->
+  <div class="modal-backdrop" id="deleteModal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
+      <h3 id="deleteTitle">Xóa sản phẩm?</h3>
+      <p>
+        Bạn sắp xóa <strong id="deleteName"></strong>
+        <span class="mono" id="deleteId"></span>.
+      </p>
+      <p class="modal-hint">
+        Chỉ xóa được khi sản phẩm <strong>chưa từng phát sinh đơn hàng</strong> và
+        <strong>không có trong giỏ hàng</strong>. Nếu đã bán, hãy chọn “Sửa” và chuyển
+        trạng thái sang INACTIVE/HIDDEN để giữ lịch sử.
+      </p>
+      <form method="post" id="deleteForm" class="modal-actions" data-action-base="/seller/products/">
+        <button type="button" class="btn ghost" data-close-modal>Hủy</button>
+        <button type="submit" class="btn danger">Xóa sản phẩm</button>
+      </form>
+    </div>
+  </div>
+<%- include('partials/footer') %>

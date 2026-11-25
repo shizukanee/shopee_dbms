@@ -1,0 +1,24 @@
+<%- include('../partials/header', { pageTitle: 'Chọn kênh' }) %>
+  <main class="container auth-wrap">
+    <section class="card auth-card wide">
+      <h1>Chọn kênh làm việc</h1>
+      <p class="card-sub">Tài khoản của bạn có nhiều vai trò. Có thể đổi kênh bất cứ lúc nào ở thanh trên cùng.</p>
+
+      <div class="channel-list">
+        <% const info = {
+             admin:  ['🛡️', 'Kiểm duyệt sản phẩm, thống kê toàn sàn, duyệt người bán.'],
+             seller: ['🏪', 'Quản lý sản phẩm và tồn kho của cửa hàng.'],
+             buyer:  ['🛒', 'Tìm và xem sản phẩm đang bán.']
+           }; %>
+        <% user.roles.forEach((role) => { %>
+          <a class="channel-option" href="<%= channelHome[role] %>">
+            <span class="channel-icon"><%= info[role][0] %></span>
+            <span>
+              <strong>Kênh <%= roleLabel[role].toLowerCase() %></strong>
+              <small><%= info[role][1] %></small>
+            </span>
+          </a>
+        <% }) %>
+      </div>
+    </section>
+<%- include('../partials/footer') %>

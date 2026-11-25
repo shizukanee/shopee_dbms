@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= pageTitle %> · Shopee BTL2</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<% const channel = locals.channel || null; const nav = locals.nav || []; const user = locals.user || null; const currentPath = locals.currentPath || "/"; %>
+<body class="<%= channel ? 'channel-' + channel : 'channel-none' %>">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark">S</span>
+        <div>
+          <strong>Shopee <%= channel ? '· ' + roleLabel[channel] : '' %></strong>
+          <small>BTL2 · Hệ CSDL</small>
+        </div>
+      </a>
+
+      <% if (nav.length) { %>
+        <nav class="nav">
+          <% nav.forEach((item) => { %>
+            <% const here = currentPath.replace(/\/$/, '');
+               const active = here === item.href || here.startsWith(item.href + '/products'); %>
+            <a href="<%= item.href %>" class="<%= active ? 'active' : '' %>">
+              <%= item.label %>
+            </a>
+          <% }) %>
+        </nav>
+      <% } %>
+
+      <% if (user) { %>
+        <div class="user-box">
+          <div class="user-meta">
+            <strong><%= user.name %></strong>
+            <small><%= user.email %></small>
+          </div>
+          <% if (user.roles.length > 1) { %>
+            <a class="btn small ghost" href="/chon-kenh">Đổi kênh</a>
+          <% } %>
+          <form method="post" action="/logout">
+            <button type="submit" class="btn small ghost">Đăng xuất</button>
+          </form>
+        </div>
+      <% } %>
+    </div>
+  </header>

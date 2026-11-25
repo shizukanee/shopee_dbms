@@ -1,0 +1,82 @@
+<%- include('../partials/header', { pageTitle: 'Đăng ký' }) %>
+  <main class="container auth-wrap">
+    <section class="card auth-card wide">
+      <h1>Tạo tài khoản</h1>
+      <p class="card-sub">Chọn vai trò. Tài khoản quản trị do hệ thống cấp, không tự đăng ký.</p>
+
+      <%- include('../partials/alerts') %>
+
+      <form method="post" action="/register" class="auth-form" id="registerForm" novalidate>
+        <fieldset class="role-pick">
+          <legend>Bạn là</legend>
+          <label class="role-option">
+            <input type="radio" name="role" value="buyer" <%= form.role !== 'seller' ? 'checked' : '' %>>
+            <span>
+              <strong>🛒 Người mua</strong>
+              <small>Tìm và xem sản phẩm đang bán trên sàn.</small>
+            </span>
+          </label>
+          <label class="role-option">
+            <input type="radio" name="role" value="seller" <%= form.role === 'seller' ? 'checked' : '' %>>
+            <span>
+              <strong>🏪 Người bán</strong>
+              <small>Mở cửa hàng và quản lý sản phẩm (cần quản trị viên xác minh).</small>
+            </span>
+          </label>
+        </fieldset>
+        <p class="field-error"><%= fieldErrors.role || '' %></p>
+
+        <div class="grid-3">
+          <% [['LastName', 'Họ', true], ['MiddleName', 'Tên đệm', false], ['FirstName', 'Tên', true]].forEach(([name, label, req]) => { %>
+            <div class="field">
+              <label for="<%= name %>"><%= label %> <% if (req) { %><span class="req">*</span><% } %></label>
+              <input id="<%= name %>" name="<%= name %>" maxlength="50" value="<%= form[name] %>"
+                     class="<%= fieldErrors[name] ? 'invalid' : '' %>">
+              <p class="field-error"><%= fieldErrors[name] || '' %></p>
+            </div>
+          <% }) %>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="Email">Email <span class="req">*</span></label>
+            <input id="Email" name="Email" type="email" maxlength="100" autocomplete="email"
+                   value="<%= form.Email %>" class="<%= fieldErrors.Email ? 'invalid' : '' %>">
+            <p class="field-error"><%= fieldErrors.Email || '' %></p>
+          </div>
+          <div class="field">
+            <label for="Phone">Số điện thoại <span class="req">*</span></label>
+            <input id="Phone" name="Phone" inputmode="numeric" maxlength="10" placeholder="0xxxxxxxxx"
+                   value="<%= form.Phone %>" class="<%= fieldErrors.Phone ? 'invalid' : '' %>">
+            <p class="field-error"><%= fieldErrors.Phone || '' %></p>
+          </div>
+        </div>
+
+        <div class="field seller-only">
+          <label for="TaxCode">Mã số thuế <small class="muted">(không bắt buộc)</small></label>
+          <input id="TaxCode" name="TaxCode" maxlength="14" placeholder="10 chữ số, có thể thêm -XXX"
+                 value="<%= form.TaxCode %>" class="<%= fieldErrors.TaxCode ? 'invalid' : '' %>">
+          <p class="field-error"><%= fieldErrors.TaxCode || '' %></p>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="Password">Mật khẩu <span class="req">*</span></label>
+            <input id="Password" name="Password" type="password" autocomplete="new-password"
+                   minlength="6" maxlength="72" class="<%= fieldErrors.Password ? 'invalid' : '' %>">
+            <p class="field-error"><%= fieldErrors.Password || '' %></p>
+          </div>
+          <div class="field">
+            <label for="ConfirmPassword">Nhập lại mật khẩu <span class="req">*</span></label>
+            <input id="ConfirmPassword" name="ConfirmPassword" type="password" autocomplete="new-password"
+                   maxlength="72" class="<%= fieldErrors.ConfirmPassword ? 'invalid' : '' %>">
+            <p class="field-error"><%= fieldErrors.ConfirmPassword || '' %></p>
+          </div>
+        </div>
+
+        <button type="submit" class="btn primary block">Đăng ký</button>
+      </form>
+
+      <p class="auth-switch">Đã có tài khoản? <a class="link" href="/login">Đăng nhập</a></p>
+    </section>
+<%- include('../partials/footer') %>

@@ -1,0 +1,73 @@
+<%- include('../partials/header', { pageTitle: 'Cửa hàng' }) %>
+  <main class="container narrow">
+    <div class="page-head">
+      <div>
+        <h1>Cửa hàng của tôi</h1>
+        <p>Mỗi người bán sở hữu tối đa một cửa hàng. Chỉ người bán đã được xác minh mới mở được cửa hàng.</p>
+      </div>
+    </div>
+
+    <%- include('../partials/alerts') %>
+
+    <section class="card">
+      <div class="info-grid">
+        <div><span class="muted">Trạng thái xác minh</span>
+          <strong><span class="badge verify-<%= seller.VerificationStatus %>">
+            <%= verificationLabel[seller.VerificationStatus] %></span></strong></div>
+        <div><span class="muted">Mã số thuế</span><strong><%= seller.TaxCode || '—' %></strong></div>
+        <div><span class="muted">Ngày xác minh</span><strong><%= formatDateTime(seller.VerifiedDate) %></strong></div>
+      </div>
+    </section>
+
+    <% if (shop) { %>
+      <section class="card">
+        <div class="card-head"><h2><%= shop.ShopName %></h2>
+          <span class="badge shop-<%= shop.ShopStatus %>"><%= shopStatusLabel[shop.ShopStatus] %></span></div>
+        <div class="info-grid">
+          <div><span class="muted">Mã cửa hàng</span><strong class="mono">#<%= shop.ShopID %></strong></div>
+          <div><span class="muted">Ngày thành lập</span><strong><%= formatDateTime(shop.EstablishedDate) %></strong></div>
+          <div class="span-all"><span class="muted">Địa chỉ</span><strong><%= shop.Address %></strong></div>
+          <div class="span-all"><span class="muted">Mô tả</span><strong><%= shop.Description || '—' %></strong></div>
+        </div>
+        <div class="form-actions"><a class="btn primary" href="/seller">Quản lý sản phẩm →</a></div>
+      </section>
+
+    <% } else if (seller.VerificationStatus === 'PENDING') { %>
+      <section class="card notice-card">
+        <h2>⏳ Đang chờ xác minh</h2>
+        <p>Quản trị viên sẽ xác minh tài khoản người bán của bạn. Sau khi được xác minh,
+           hãy quay lại trang này để mở cửa hàng.</p>
+      </section>
+
+    <% } else if (seller.VerificationStatus === 'REJECTED') { %>
+      <section class="card notice-card danger">
+        <h2>✕ Yêu cầu bị từ chối</h2>
+        <p>Tài khoản người bán chưa được chấp thuận nên chưa thể mở cửa hàng.
+           Vui lòng liên hệ quản trị viên.</p>
+      </section>
+
+    <% } else { %>
+      <section class="card">
+        <div class="card-head"><h2>Mở cửa hàng</h2></div>
+        <form method="post" action="/seller/cua-hang" novalidate>
+          <div class="field">
+            <label for="ShopName">Tên cửa hàng <span class="req">*</span></label>
+            <input id="ShopName" name="ShopName" maxlength="100" value="<%= form.ShopName %>"
+                   class="<%= fieldErrors.ShopName ? 'invalid' : '' %>">
+            <p class="field-error"><%= fieldErrors.ShopName || '' %></p>
+          </div>
+          <div class="field">
+            <label for="Address">Địa chỉ <span class="req">*</span></label>
+            <input id="Address" name="Address" maxlength="255" value="<%= form.Address %>"
+                   class="<%= fieldErrors.Address ? 'invalid' : '' %>">
+            <p class="field-error"><%= fieldErrors.Address || '' %></p>
+          </div>
+          <div class="field">
+            <label for="Description">Mô tả</label>
+            <textarea id="Description" name="Description" rows="3"><%= form.Description %></textarea>
+          </div>
+          <div class="form-actions"><button type="submit" class="btn primary">Mở cửa hàng</button></div>
+        </form>
+      </section>
+    <% } %>
+<%- include('../partials/footer') %>

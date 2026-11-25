@@ -1,0 +1,96 @@
+<%- include('partials/header', { pageTitle: title }) %>
+  <main class="container">
+    <div class="page-head">
+      <div>
+        <h1><%= title %></h1>
+        <p><%= subtitle %></p>
+      </div>
+    </div>
+
+    <%- include('partials/alerts', { success: null }) %>
+
+    <section class="card filter-card">
+      <form method="get" action="<%= basePath %>" class="filter-bar">
+        <% if (scope !== 'seller') { %>
+          <div class="field">
+            <label for="shopId">Cửa hàng</label>
+            <select id="shopId" name="shopId">
+              <option value="">Tất cả</option>
+              <% shops.forEach((shop) => { %>
+                <option value="<%= shop.ShopID %>"
+                        <%= Number(filters.shopId) === Number(shop.ShopID) ? 'selected' : '' %>>
+                  <%= shop.ShopName %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+        <% } %>
+
+        <div class="field">
+          <label for="status">Trạng thái sản phẩm</label>
+          <select id="status" name="status">
+            <option value="">Tất cả</option>
+            <% PRODUCT_STATUSES.forEach((s) => { %>
+              <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>>
+                <%= productStatusLabel[s] %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="field small">
+          <label for="minProducts">Số SP tối thiểu</label>
+          <input id="minProducts" name="minProducts" type="number" min="0"
+                 value="<%= filters.minProducts ?? '' %>">
+        </div>
+        <div class="field small">
+          <label for="minStock">Tồn kho tối thiểu</label>
+          <input id="minStock" name="minStock" type="number" min="0"
+                 value="<%= filters.minStock ?? '' %>">
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="btn primary">Lọc</button>
+          <a class="btn ghost" href="<%= basePath %>">Xóa lọc</a>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>Kết quả</h2>
+          <p class="card-sub"><%= rows.length %> nhóm cửa hàng × danh mục</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <% if (scope !== 'seller') { %><th>Cửa hàng</th><% } %>
+              <th>Danh mục</th>
+              <th class="num">Số sản phẩm</th>
+              <th class="num">Số phân loại</th>
+              <th class="num">Tổng tồn kho</th>
+              <th class="num">Giá TB / phân loại</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (rows.length === 0) { %>
+              <tr><td colspan="6" class="empty">Không có nhóm nào thỏa điều kiện.</td></tr>
+            <% } %>
+            <% rows.forEach((r) => { %>
+              <tr>
+                <% if (scope !== 'seller') { %><td><%= r.ShopName %></td><% } %>
+                <td><%= r.CategoryName %></td>
+                <td class="num"><%= formatNumber(r.ProductCount) %></td>
+                <td class="num"><%= formatNumber(r.VariantCount) %></td>
+                <td class="num"><%= formatNumber(r.TotalStock) %></td>
+                <td class="num"><%= formatVnd(r.AverageVariantPrice) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+<%- include('partials/footer') %>
